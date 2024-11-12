@@ -2,10 +2,8 @@ package proyecto.proyectofinaled;
 
 import proyecto.proyectofinaled.Model.Ciudad;
 import proyecto.proyectofinaled.Model.Departamento;
-import proyecto.proyectofinaled.Model.Pais;
 import proyecto.proyectofinaled.csv.CiudadDao;
 import proyecto.proyectofinaled.csv.DepartamentoDao;
-import proyecto.proyectofinaled.csv.PaisDao;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -15,12 +13,12 @@ public class Aplicacion {
 
     public static void main(String[] args) throws IOException {
 
-        PaisDao paisDao = new PaisDao();
-        List<Pais> paises = paisDao.obtenerTodos();
-
-        for (Pais pais : paises) {
-            System.out.println(pais.toString());
-        }
+//        PaisDao paisDao = new PaisDao();
+//        List<Pais> paises = paisDao.obtenerTodos();
+//
+//        for (Pais pais : paises) {
+//            System.out.println(pais.toString());
+//        }
 
         DepartamentoDao deptoDao = new DepartamentoDao();
         List<Departamento> deptos = deptoDao.obtenerTodos();
@@ -36,16 +34,16 @@ public class Aplicacion {
         }
     }
 
-    public static void ejemploReflection() {
-        try {
-            Class<Pais> claseEntidad = Pais.class;
-            Pais paisEjemplo = claseEntidad.getDeclaredConstructor().newInstance();
-            Field field = Pais.class.getDeclaredField("nombre");
-            field.setAccessible(true);
-            field.set(paisEjemplo, "Juan Pérez");
-            System.out.println(paisEjemplo);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+//    public static void ejemploReflection() {
+//        try {
+//            Class<Pais> claseEntidad = Pais.class;
+//            Pais paisEjemplo = claseEntidad.getDeclaredConstructor().newInstance();
+//            Field field = Pais.class.getDeclaredField("nombre");
+//            field.setAccessible(true);
+//            field.set(paisEjemplo, "Juan Pérez");
+//            System.out.println(paisEjemplo);
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
         }
-    }
-}
+//    }
+//}
