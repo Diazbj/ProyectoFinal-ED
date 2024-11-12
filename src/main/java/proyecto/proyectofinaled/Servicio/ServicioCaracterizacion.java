@@ -1,7 +1,9 @@
 package proyecto.proyectofinaled.Servicio;
 
 import proyecto.proyectofinaled.Model.Caracterizacion;
+import proyecto.proyectofinaled.Model.CaracterizacionRegistro;
 import proyecto.proyectofinaled.Model.Persona;
+import proyecto.proyectofinaled.Model.TipoEntidad;
 import proyecto.proyectofinaled.Utils.GestorArchivos;
 import proyecto.proyectofinaled.Utils.LectorArchivosUtil;
 import proyecto.proyectofinaled.csv.CaracterizacionDao;
