@@ -1,32 +1,60 @@
 #!/bin/bash
 
-# Add error handling and check if directories exist
+# Configuración de timestamps y directorios
+timestamp=$(date +"%Y%m%d_%H%M%S")
 base_dir=$(pwd)
 parent_dir=$(dirname "$base_dir")
+log_dir="$base_dir/logs/compresion_archivos"
+temp_dir="$log_dir/temp"
+output_file="$log_dir/compresion_${timestamp}.log"
+error_file="$log_dir/error_${timestamp}.log"
+temp_output="$temp_dir/temp_output_${timestamp}.txt"
+temp_error="$temp_dir/temp_error_${timestamp}.txt"
 
-if [ ! -d "$base_dir" ]; then
-    echo "Error: El directorio del proyecto no existe"
+# Crear estructura de directorios
+mkdir -p "$log_dir" "$temp_dir"
+
+# Función de limpieza
+cleanup() {
+    if [ -f "$temp_output" ]; then rm "$temp_output"; fi
+    if [ -f "$temp_error" ]; then rm "$temp_error"; fi
+}
+
+# Registrar inicio de ejecución
+echo "=== Inicio de ejecución: $(date) ===" | tee -a "$output_file"
+
+# Cambiar al directorio del proyecto
+cd "$parent_dir" || {
+    echo "Error: No se pudo acceder al directorio del proyecto" | tee -a "$error_file"
+    exit 1
+}
+
+# Compilar y empaquetar con Maven
+echo "Compilando proyecto con Maven..." | tee -a "$output_file"
+if ! mvn clean package -DskipTests > "$temp_output" 2> "$temp_error"; then
+    echo "Error: Falló la compilación con Maven" | tee -a "$error_file"
+    echo "Detalles del error:"
+    cat "$temp_error" | tee -a "$error_file"
+    cleanup
     exit 1
 fi
 
-# Cambiar al directorio donde está la carpeta src
-cd "$parent_dir/src/main/java" || exit 1
-
-# Compilar las clases (agregando manejo de errores)
-if ! javac proyecto/proyectofinaled/Main.java; then
-    echo "Error: Falló la compilación"
-    read -p "Presiona Enter para continuar..."
+# Ejecutar la compresión de archivos
+echo "Ejecutando compresión de archivos..." | tee -a "$output_file"
+if ! java -jar application/bin/proyectofinaled-1.0-SNAPSHOT-jar-with-dependencies.jar comprimirArchivos > "$temp_output" 2> "$temp_error"; then
+    echo "Error: Falló la ejecución del programa" | tee -a "$error_file"
+    echo "Detalles del error:"
+    cat "$temp_error" | tee -a "$error_file"
+    cleanup
     exit 1
 fi
 
-# Ejecutar el programa
-java proyecto.proyectofinaled.Main comprimirArchivos > salidaCompresion.txt 2> errorCompresion.log
+# Registrar finalización
+echo "=== Fin de ejecución: $(date) ===" | tee -a "$output_file"
+echo "Proceso completado exitosamente." | tee -a "$output_file"
+echo "Logs guardados en:"
+echo "- Output: $output_file"
+echo "- Errores: $error_file"
 
-# Verificar si la ejecución fue exitosa
-if [ $? -eq 0 ]; then
-    echo "El programa se ejecutó exitosamente. Revisa salidaCompresion.txt para ver los resultados."
-else
-    echo "Hubo un error durante la ejecución del programa."
-fi
-
-read -p "Presiona Enter para continuar..."
+# Limpieza final
+cleanup

@@ -23,42 +23,30 @@ cleanup() {
 # Registrar inicio de ejecución
 echo "=== Inicio de ejecución: $(date) ===" | tee -a "$output_file"
 
-# Validar directorio padre
-if [ ! -d "$parent_dir" ]; then
-    echo "Error: El directorio padre del proyecto no existe" | tee -a "$error_file"
-    exit 1
-fi
-
-# Cambiar al directorio src/main/java
-cd "$parent_dir/src/main/java" || {
-    echo "Error: No se pudo acceder al directorio src/main/java" | tee -a "$error_file"
+# Cambiar al directorio del proyecto
+cd "$parent_dir" || {
+    echo "Error: No se pudo acceder al directorio del proyecto" | tee -a "$error_file"
     exit 1
 }
 
-# Compilar las clases
-echo "Compilando clases..." | tee -a "$output_file"
-if ! javac proyecto/proyectofinaled/Main.java 2> "$temp_error"; then
-    echo "Error: Falló la compilación" | tee -a "$error_file"
-    cat "$temp_error" >> "$error_file"
+# Compilar y empaquetar con Maven
+echo "Compilando proyecto con Maven..." | tee -a "$output_file"
+if ! mvn clean package -DskipTests > "$temp_output" 2> "$temp_error"; then
+    echo "Error: Falló la compilación con Maven" | tee -a "$error_file"
+    echo "Detalles del error:"
+    cat "$temp_error" | tee -a "$error_file"
     cleanup
-    read -p "Presiona Enter para continuar..."
     exit 1
 fi
 
-# Ejecutar el programa
+# Ejecutar la generación de documentos
 echo "Ejecutando generación de documentos..." | tee -a "$output_file"
-if ! java proyecto.proyectofinaled.Main generarArchivosEntrantes > "$temp_output" 2> "$temp_error"; then
+if ! java -jar application/bin/proyectofinaled-1.0-SNAPSHOT-jar-with-dependencies.jar generarArchivosEntrantes > "$temp_output" 2> "$temp_error"; then
     echo "Error: Falló la ejecución del programa" | tee -a "$error_file"
-    cat "$temp_error" >> "$error_file"
+    echo "Detalles del error:"
+    cat "$temp_error" | tee -a "$error_file"
     cleanup
-    read -p "Presiona Enter para continuar..."
     exit 1
-fi
-
-# Procesar resultado
-cat "$temp_output" >> "$output_file"
-if [ -s "$temp_error" ]; then
-    cat "$temp_error" >> "$error_file"
 fi
 
 # Registrar finalización
@@ -70,4 +58,3 @@ echo "- Errores: $error_file"
 
 # Limpieza final
 cleanup
-# read -p "Presiona Enter para continuar..."
