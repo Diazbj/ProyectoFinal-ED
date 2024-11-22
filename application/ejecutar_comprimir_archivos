@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Add error handling and check if directories exist
-base_dir=~/Escritorio/programacion/otra/ProyectoEstructuraDatos
+base_dir=$(pwd)
+parent_dir=$(dirname "$base_dir")
 
 if [ ! -d "$base_dir" ]; then
     echo "Error: El directorio del proyecto no existe"
@@ -9,20 +10,17 @@ if [ ! -d "$base_dir" ]; then
 fi
 
 # Cambiar al directorio donde está la carpeta src
-cd "$base_dir/src" || exit 1
+cd "$parent_dir/src/main/java" || exit 1
 
 # Compilar las clases (agregando manejo de errores)
-if ! javac -d ../bin edu/Main.java; then
+if ! javac proyecto/proyectofinaled/Main.java; then
     echo "Error: Falló la compilación"
     read -p "Presiona Enter para continuar..."
     exit 1
 fi
 
-# Cambiar al directorio bin
-cd "$base_dir/bin" || exit 1
-
 # Ejecutar el programa
-java edu.Main comprimirArchivos > salidaCompresion.txt 2> errorCompresion.log
+java proyecto.proyectofinaled.Main comprimirArchivos > salidaCompresion.txt 2> errorCompresion.log
 
 # Verificar si la ejecución fue exitosa
 if [ $? -eq 0 ]; then

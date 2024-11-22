@@ -1,48 +1,72 @@
 #!/bin/bash
 
-# Cambiar al directorio donde está la carpeta src de tu proyecto
-cd ~/Escritorio/programacion/otra/ProyectoEstructuraDatos/src
+# Configuración de timestamps y directorios
+timestamp=$(date +"%Y%m%d_%H%M%S")
+base_dir=$(pwd)
+parent_dir=$(dirname "$base_dir")
+log_dir="$base_dir/logs/traslado_cotizantes"
+temp_dir="$log_dir/temp"
+output_file="$log_dir/traslado_${timestamp}.log"
+error_file="$log_dir/error_${timestamp}.log"
+temp_output="$temp_dir/temp_output_${timestamp}.txt"
+temp_error="$temp_dir/temp_error_${timestamp}.txt"
 
-# Compilar las clases de tu proyecto y generar los archivos .class en la carpeta bin
-javac -d ../bin edu/Main.java
+# Crear estructura de directorios
+mkdir -p "$log_dir" "$temp_dir"
 
-# Cambiar al directorio bin donde están los archivos .class
-cd ~/Escritorio/programacion/otra/ProyectoEstructuraDatos/bin
+# Función de limpieza
+cleanup() {
+    if [ -f "$temp_output" ]; then rm "$temp_output"; fi
+    if [ -f "$temp_error" ]; then rm "$temp_error"; fi
+}
 
-# Ejecutar el método trasladarSolicitudCotizantesAprobados de la clase Main y guardar la salida en un archivo
-java edu.Main trasladarSolicitudCotizantesAprobados > salida.txt 2>&1
+# Registrar inicio de ejecución
+echo "=== Inicio de ejecución: $(date) ===" | tee -a "$output_file"
 
-# Pausar para ver si hubo algún error en la consola
-read -p "Presiona Enter para continuar..."
-# Add error handling and check if directories exist
-base_dir=~/Escritorio/programacion/otra/ProyectoEstructuraDatos
-
-if [ ! -d "$base_dir" ]; then
-    echo "Error: El directorio del proyecto no existe"
+# Validar directorio padre
+if [ ! -d "$parent_dir" ]; then
+    echo "Error: El directorio padre del proyecto no existe" | tee -a "$error_file"
     exit 1
 fi
 
-# Cambiar al directorio donde está la carpeta src
-cd "$base_dir/src" || exit 1
+# Cambiar al directorio src/main/java
+cd "$parent_dir/src/main/java" || {
+    echo "Error: No se pudo acceder al directorio src/main/java" | tee -a "$error_file"
+    exit 1
+}
 
-# Compilar las clases (agregando manejo de errores)
-if ! javac -d ../bin edu/Main.java; then
-    echo "Error: Falló la compilación"
+# Compilar las clases
+echo "Compilando clases..." | tee -a "$output_file"
+if ! javac proyecto/proyectofinaled/Main.java 2> "$temp_error"; then
+    echo "Error: Falló la compilación" | tee -a "$error_file"
+    cat "$temp_error" >> "$error_file"
+    cleanup
     read -p "Presiona Enter para continuar..."
     exit 1
 fi
 
-# Cambiar al directorio bin
-cd "$base_dir/bin" || exit 1
-
 # Ejecutar el programa
-java edu.Main trasladarSolicitudCotizantesAprobados > salidaTraslado.txt 2> errorTraslado.log
-
-# Verificar si la ejecución fue exitosa
-if [ $? -eq 0 ]; then
-    echo "El programa se ejecutó exitosamente. Revisa salidaTraslado.txt para ver los resultados."
-else
-    echo "Hubo un error durante la ejecución del programa."
+echo "Ejecutando traslado de cotizantes..." | tee -a "$output_file"
+if ! java proyecto.proyectofinaled.Main trasladarSolicitudCotizantesAprobados > "$temp_output" 2> "$temp_error"; then
+    echo "Error: Falló la ejecución del programa" | tee -a "$error_file"
+    cat "$temp_error" >> "$error_file"
+    cleanup
+    read -p "Presiona Enter para continuar..."
+    exit 1
 fi
 
-read -p "Presiona Enter para continuar..."
+# Procesar resultado
+cat "$temp_output" >> "$output_file"
+if [ -s "$temp_error" ]; then
+    cat "$temp_error" >> "$error_file"
+fi
+
+# Registrar finalización
+echo "=== Fin de ejecución: $(date) ===" | tee -a "$output_file"
+echo "Proceso completado exitosamente." | tee -a "$output_file"
+echo "Logs guardados en:"
+echo "- Output: $output_file"
+echo "- Errores: $error_file"
+
+# Limpieza final
+cleanup

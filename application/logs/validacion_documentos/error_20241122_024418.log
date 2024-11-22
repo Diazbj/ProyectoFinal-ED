@@ -1,0 +1,10 @@
+Error: Falló la ejecución del programa
+Exception in thread "main" java.lang.ExceptionInInitializerError
+	at proyecto.proyectofinaled.dao.impl.csv.TipoDocumentoAccesoDato.<init>(TipoDocumentoAccesoDato.java:12)
+	at proyecto.proyectofinaled.controladores.ControladorArchivosUtilitario.cargarTipoDocumento(ControladorArchivosUtilitario.java:25)
+	at proyecto.proyectofinaled.controladores.ControladorArchivosUtilitario.<init>(ControladorArchivosUtilitario.java:19)
+	at proyecto.proyectofinaled.Main.validarSolicitudCotizante(Main.java:80)
+	at proyecto.proyectofinaled.Main.main(Main.java:26)
+Caused by: java.lang.IllegalStateException: No se puede encontrar application.properties en el classpath
+	at proyecto.proyectofinaled.utilidades.RutasConstantes.<clinit>(RutasConstantes.java:17)
+	... 5 more
