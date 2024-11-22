@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Add error handling and check if directories exist
+base_dir=~/Escritorio/programacion/otra/ProyectoEstructuraDatos
+
+if [ ! -d "$base_dir" ]; then
+    echo "Error: El directorio del proyecto no existe"
+    exit 1
+fi
+
+# Cambiar al directorio donde está la carpeta src
+cd "$base_dir/src" || exit 1
+
+# Compilar las clases (agregando manejo de errores)
+if ! javac -d ../bin edu/Main.java; then
+    echo "Error: Falló la compilación"
+    read -p "Presiona Enter para continuar..."
+    exit 1
+fi
+
+# Cambiar al directorio bin
+cd "$base_dir/bin" || exit 1
+
+# Ejecutar el programa
+java edu.Main generarArchivosEntrantes > salidaGeneracion.txt 2> errorGeneracion.log
+
+# Verificar si la ejecución fue exitosa
+if [ $? -eq 0 ]; then
+    echo "El programa se ejecutó exitosamente. Revisa salidaGeneracion.txt para ver los resultados."
+else
+    echo "Hubo un error durante la ejecución del programa."
+fi
+
+read -p "Presiona Enter para continuar..."
