@@ -14,15 +14,56 @@ import java.util.zip.ZipOutputStream;
 
 public class LectorArchivosUtil {
 
-    public List<String> obtenerNombresObjetosEnDirectorio(String rutaDirectorio) {
-        List<String> nombres = new ArrayList<>();
-        File directorio = new File(rutaDirectorio);
-        if (directorio.exists() && directorio.isDirectory()) {
-            for (File archivo : directorio.listFiles()) {
-                nombres.add(archivo.getName());
+    public static final String SEPARADOR_CSV = ",";
+
+    public static String[] leerPrimeraLineaCsv(String rutaArchivo)
+            throws IOException
+    {
+        File archivo = new File(rutaArchivo);
+
+        try(BufferedReader lector = new BufferedReader(
+                new InputStreamReader(new FileInputStream(archivo), StandardCharsets.UTF_8))
+        ) {
+            String primeraLinea = lector.readLine();
+
+            if(primeraLinea != null) {
+                return primeraLinea.split(LectorArchivosUtil.SEPARADOR_CSV);
             }
         }
-        return nombres;
+
+        return null;
+    }
+
+    public static LinkedList<String[]> leerTodasLasLineasCsv(String rutaArchivo)
+            throws IOException {
+        return leerTodasLasLineasCsv(rutaArchivo,true);
+    }
+
+    public static LinkedList<String[]> leerTodasLasLineasCsv(
+            String rutaArchivo, boolean esSaltarPrimera
+    ) throws IOException {
+
+        File archivo = new File(rutaArchivo);
+        LinkedList<String[]> lineas = new LinkedList<>();
+
+        try(BufferedReader lector = new BufferedReader(
+                new InputStreamReader(new FileInputStream(archivo), StandardCharsets.UTF_8))
+        ) {
+            String linea;
+            boolean esPrimeraLinea = (esSaltarPrimera) ? true: false;
+            while( (linea = lector.readLine()) != null  ) {
+
+                if(esPrimeraLinea) {
+                    esPrimeraLinea = false;
+                    continue;
+                }
+
+                String[] arreglo = linea.split(LectorArchivosUtil.SEPARADOR_CSV);
+                lineas.add( arreglo );
+            }
+        }
+
+        return lineas;
     }
 
     public boolean crearDirectorio(String rutaDirectorio) {
