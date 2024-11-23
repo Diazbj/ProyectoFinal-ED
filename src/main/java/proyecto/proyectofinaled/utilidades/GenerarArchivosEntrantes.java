@@ -17,7 +17,7 @@ public class GenerarArchivosEntrantes {
         // Primero generamos los archivos CSV iniciales
         generarArchivosCsvIniciales();
         
-        int totalArchivos = 10000;
+        int totalArchivos = 300;
         int registrosPorArchivo = 100;
         String ruta = System.getProperty("user.dir") + "/src/main/resources/SolicitudesEntrantes/";
         Random random = new Random();
@@ -53,7 +53,7 @@ public class GenerarArchivosEntrantes {
     }
 
     private void generarArchivosCsvIniciales() {
-        String rutaBase = System.getProperty("user.dir") + "/src/main/resources/Utilitario/";
+        String rutaBase = System.getProperty("user.dir") + "/src/main/resources/";
         
         try {
             // Crear directorio si no existe

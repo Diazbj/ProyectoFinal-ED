@@ -21,30 +21,24 @@ public class ControladorValidarSolicitudCotizante {
 	}
 	
 	public void validarSolicitudCotizantes() throws IOException {
-		/**
-		 * Se actualiza la lista de caracterizaciones, solicitud de cotizantes, cotizantes inhabilitados (lista negra), cotizantes rechazados y cotizantes aprobados
-		 */
+		System.out.println("Iniciando actualización de listas...");
 		this.cargarArchivos.getCaracterizaciones().actualizarCaracterizaciones();
 		this.cargarArchivos.getSolicitudesCotizante().actualizarSolicitudCotizaciones();
 		this.cargarArchivos.getListaSolicitudesInhabilitados().actualizarListaNegra();
 		this.cargarArchivos.getListaCotizantesRechazados().actualizarSolicitudCotizantesRechazados();
 		this.cargarArchivos.getListaCotizantesAprobados().actualizarSolicitudCotizantesAprobados();
-		/**
-		 * Se recorre cada solicitud de cotizante.
-		 */
+		System.out.println("Listas actualizadas exitosamente");
+
+		System.out.println("Iniciando procesamiento de solicitudes de cotizantes...");
 		this.cargarArchivos.getSolicitudesCotizante().getSolicitudCotizantes().forEach(solicitudRegistro -> {
-			/**
-			 * Se consulta si el futuro cotizante existe en la lista de caracterizaciones
-			 */
+			System.out.println("Procesando solicitud para: " + solicitudRegistro.getPersona().getNombreCompleto());
+			
 			Caracterizacion caracterizacion = this.cargarArchivos.getCaracterizaciones().obtenerCaracterizacion(solicitudRegistro.getPersona());
-			/**
-			 * Si el futuro cotizante no existe en la lista de caracterizaciones o existe pero el tipo de caracterizacion es embargado
-			 */
+			
 			if(caracterizacion == null || caracterizacion.getTipoCaracterizacion() == TipoCaracterizacion.EMBARGAR) {
-				/**
-				 * El futuro cotizante cumple con las politicas de aceptacion?
-				 */
+				System.out.println("Validando políticas de aceptación...");
 				if(validarSolicitudCotizantePoliticas(solicitudRegistro)) {
+					System.out.println("Solicitud APROBADA - Agregando a lista de aprobados");
 					this.cargarArchivos.getListaCotizantesAprobados().agregarSolicitudCotizante(new SolicitudCotizanteAprobado(
 							solicitudRegistro.getPersona().getTipoDocumento(),
 							solicitudRegistro.getPersona().getDocumento(),
@@ -57,6 +51,7 @@ public class ControladorValidarSolicitudCotizante {
 							solicitudRegistro.esDeclarante()
 							));
 				} else {
+					System.out.println("Solicitud RECHAZADA - Agregando a lista de rechazados");
 					this.cargarArchivos.getListaCotizantesRechazados().agregarSolicitudCotizante(new SolicitudCotizanteRechazado(
 							solicitudRegistro.getPersona().getTipoDocumento(),
 							solicitudRegistro.getPersona().getDocumento(),
@@ -69,54 +64,41 @@ public class ControladorValidarSolicitudCotizante {
 							solicitudRegistro.esDeclarante()
 							));
 				}
-			/**
-			 * El futuro cotizante existe en la lista de caracterizaciones y esta inhabilitado
-			 */
 			} else {
-				if(caracterizacion.getTipoCaracterizacion() == TipoCaracterizacion.INHABILITAR) 
+				if(caracterizacion.getTipoCaracterizacion() == TipoCaracterizacion.INHABILITAR) {
+					System.out.println("Cotizante INHABILITADO - Agregando a lista negra");
 					this.cargarArchivos.getListaSolicitudesInhabilitados().agregarListaNegra(new ListaNegra(caracterizacion.getTipoEntidad(), solicitudRegistro.getPersona(), caracterizacion.getTipoCaracterizacion(), FechaUtil.generarFechaFormato()));
+				}
 			}
 		});
+		System.out.println("Procesamiento de solicitudes finalizado");
 	}
 	
-	/**
-	 * Se validan politicas de aceptacion
-	 * @param solicitudRegistro
-	 */
 	private boolean validarSolicitudCotizantePoliticas(SolicitudCotizante solicitudRegistro) {
-		/**
-		 * Si el futuro cotizante existe en la lista negra y la fecha de registro es inferior a seis meses
-		 */
-		if(this.cargarArchivos.getListaSolicitudesInhabilitados().existeSolicitudCotizanteInhabilitada(solicitudRegistro.getPersona())) 
+		System.out.println("Verificando estado en lista negra...");
+		if(this.cargarArchivos.getListaSolicitudesInhabilitados().existeSolicitudCotizanteInhabilitada(solicitudRegistro.getPersona())) {
+			System.out.println("Cotizante en lista negra - Rechazado");
 			return false;
-		/**
-		 * Si el futuro cotizante es pre pensionado
-		 */
-		if(solicitudRegistro.getPrePensionado() == 1) 
+		}
+		
+		System.out.println("Verificando estado de pre-pensionado...");
+		if(solicitudRegistro.getPrePensionado() == 1) {
+			System.out.println("Cotizante es pre-pensionado - Rechazado");
 			return false;
-		/**
-		 * El futuro cotizante es civil?
-		 */
+		}
+		
 		if(solicitudRegistro.getInstitucionPublica() == InstitucionesPublicas.CIVIL) {
-			/**
-			 * Validar solicitud cotizantes civil
-			 */
+			System.out.println("Procesando solicitud como civil");
 			return validarSolicitudCotizanteCivil(solicitudRegistro);
 		} else {
-			/**
-			 * Validar solicitud cotizantes NO civil
-			 */
+			System.out.println("Procesando solicitud como NO civil");
 			return validarSolicitudCotizanteNoCivil(solicitudRegistro);
 		}
 	}
 	
-	/**
-	 * Se valida si la solicitud del cotizante cumple con las politicas para los NO civiles
-	 * @param solicitudRegistro
-	 * @return
-	 */
 	private boolean validarSolicitudCotizanteNoCivil(SolicitudCotizante solicitudRegistro) {
 		if(solicitudRegistro.getInstitucionPublica() == InstitucionesPublicas.ARMADA) {
+			System.out.println("Validando reglas para ARMADA");
 			if(solicitudRegistro.getCondecoracion() == 1)
 				return true;
 			else 
@@ -124,6 +106,7 @@ public class ControladorValidarSolicitudCotizante {
 		}
 		
 		if(solicitudRegistro.getInstitucionPublica() == InstitucionesPublicas.INPEC) {
+			System.out.println("Validando reglas para INPEC");
 			if(solicitudRegistro.getHijosInpec() == 0) 
 				return true;
 			else 
@@ -134,6 +117,7 @@ public class ControladorValidarSolicitudCotizante {
 		}
 		
 		if(solicitudRegistro.getInstitucionPublica() == InstitucionesPublicas.POLICIA) {
+			System.out.println("Validando reglas para POLICIA");
 			if(solicitudRegistro.getFamiliaPolicia() == 1) 
 				if(solicitudRegistro.getPersona().getEdad() > 18)
 					return true;
@@ -142,6 +126,7 @@ public class ControladorValidarSolicitudCotizante {
 		}
 		
 		if(solicitudRegistro.getInstitucionPublica() == InstitucionesPublicas.MINSALUD || solicitudRegistro.getInstitucionPublica() == InstitucionesPublicas.MININTERIOR) {
+			System.out.println("Validando reglas para MINSALUD/MININTERIOR");
 			if(solicitudRegistro.getObservacionDisciplinaria() == 0)
 				return true;
 			else 
@@ -151,16 +136,17 @@ public class ControladorValidarSolicitudCotizante {
 		return false;
 	}
 	
-	/**
-	 * Se valida si la solicitud del cotizante cumple con las politicas para los civiles
-	 * @param solicitudRegistro
-	 * @return
-	 */
 	private boolean validarSolicitudCotizanteCivil(SolicitudCotizante solicitudRegistro) {
-		if(solicitudRegistro.getPersona().getDepartamentoNacimiento().equals(solicitudRegistro.getPersona().getDepartamentoResidencia()) && solicitudRegistro.getPersona().getCiudadNacimiento().equals(solicitudRegistro.getPersona().getCiudadResidencia())) 
+		System.out.println("Validando ubicación...");
+		if(solicitudRegistro.getPersona().getDepartamentoNacimiento().equals(solicitudRegistro.getPersona().getDepartamentoResidencia()) && 
+		   solicitudRegistro.getPersona().getCiudadNacimiento().equals(solicitudRegistro.getPersona().getCiudadResidencia())) {
+			System.out.println("Mismo lugar de nacimiento y residencia - Rechazado");
 			return false;
+		}
 		
+		System.out.println("Validando edad y fondo de origen...");
 		if(solicitudRegistro.getPersona().getEdad() > 40) {
+			System.out.println("Edad mayor a 40 - Rechazado");
 			return false;
 		} else {
 			if(solicitudRegistro.getFondoOrigen() == FondosOrigen.PORVERNIR)

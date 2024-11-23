@@ -8,12 +8,20 @@ public class RutasConstantes {
     private static final Properties properties = new Properties();
     
     static {
-        try (InputStream input = RutasConstantes.class.getClassLoader()
-                .getResourceAsStream("application.properties")) {
-            if (input == null) {
-                throw new IllegalStateException("No se puede encontrar application.properties en el classpath");
+        try {
+            // Agregar logs de diagnóstico
+            ClassLoader classLoader = RutasConstantes.class.getClassLoader();
+            System.out.println("Buscando application.properties en el classpath...");
+            
+            try (InputStream input = classLoader.getResourceAsStream("application.properties")) {
+                if (input == null) {
+                    // Intentar listar recursos disponibles para diagnóstico
+                    System.out.println("No se pudo encontrar application.properties");
+                    throw new IllegalStateException("No se puede encontrar application.properties en el classpath");
+                }
+                System.out.println("Archivo application.properties encontrado exitosamente");
+                properties.load(input);
             }
-            properties.load(input);
         } catch (IOException e) {
             throw new IllegalStateException("Error al cargar application.properties", e);
         }
@@ -45,5 +53,10 @@ public class RutasConstantes {
 
     public static int getTrasladosAprobadosXDia() {
         return Integer.parseInt(properties.getProperty("traslados.max.dia"));
+    }
+
+    public static String getArchivoTiposDocumento() {
+        return properties.getProperty("directorio.utilitario") + "/" + 
+               properties.getProperty("archivo.tipos.documento");
     }
 }

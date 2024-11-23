@@ -108,4 +108,4 @@ csv_files=(
 for csv in "${csv_files[@]}"; do
     csv_path="$utilitario_dir/$csv"
     if [ ! -f "$csv_path" ]; then
-
+        echo "Advert
